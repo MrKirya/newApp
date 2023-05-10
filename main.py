@@ -1,9 +1,8 @@
-
-
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QFileDialog
 import os
 import shutil
+import sys
 
 
 class Ui_MainWindow(object):
@@ -30,11 +29,13 @@ class Ui_MainWindow(object):
         self.action.triggered.connect(self.open_folder_dialog)
         self.action_2 = QtGui.QAction(parent=MainWindow)
         self.action_2.setObjectName("action_2")
-        #self.action_2.triggered.connect(self.open_file_dialog)
+        self.action_2.triggered.connect(self.open_file_dialog)
         self.action_4 = QtGui.QAction(parent=MainWindow)
         self.action_4.setObjectName("action_4")
+        self.action_4.triggered.connect(self.save_button_clicked)
         self.action_6 = QtGui.QAction(parent=MainWindow)
         self.action_6.setObjectName("action_6")
+        self.action_6.triggered.connect(QtCore.QCoreApplication.quit)
         self.menu.addAction(self.action)
         self.menu.addAction(self.action_2)
         self.menu.addSeparator()
@@ -42,7 +43,9 @@ class Ui_MainWindow(object):
         self.menu.addSeparator()
         self.menu.addAction(self.action_6)
         self.menubar.addAction(self.menu.menuAction())
-
+        self.textBrowser = QtWidgets.QTextBrowser(parent=self.centralwidget)
+        self.textBrowser.setGeometry(QtCore.QRect(90, 70, 461, 291))
+        self.textBrowser.setObjectName("textBrowser")
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -59,6 +62,21 @@ class Ui_MainWindow(object):
         if folder_path:
             print("Сохранили конфиг в папку:", folder_path)
 
+    def open_file_dialog(self):
+        dialog = QFileDialog()
+        file_path, _ = dialog.getOpenFileName(None, "Выберите файл")
+
+        # Дальнейшая обработка выбранного файла
+        if file_path:
+            print("Выбранный файл:", file_path)
+            with open(file_path, 'r') as file:
+                content = file.read()
+                self.textBrowser.setText(content)
+
+    def save_button_clicked(self):
+        # Пустой обработчик нажатия кнопки "Сохранить"
+        pass
+
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Graph Editor (v.0.1)"))
@@ -70,7 +88,6 @@ class Ui_MainWindow(object):
 
 
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
