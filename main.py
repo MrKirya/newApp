@@ -1,5 +1,5 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QFileDialog, QMessageBox
 import os
 import shutil
 import sys
@@ -53,14 +53,29 @@ class Ui_MainWindow(object):
         dialog = QFileDialog()
         dialog.setFileMode(QFileDialog.FileMode.Directory)  # Установка режима выбора папки
         folder_path = dialog.getExistingDirectory(None, "Выберите папку", QtCore.QDir.homePath())
-        new_folder_path = os.path.join(folder_path, "hello world")
-        os.mkdir(new_folder_path)
-        new_json_path = os.path.join(new_folder_path, "config.json")
-        existing_json_path = "C:/Users/Kirill/PycharmProjects/GraphPyQT/config.json"
-        shutil.copyfile(existing_json_path, new_json_path)
-        # Дальнейшая обработка выбранной папки
+
         if folder_path:
+            new_folder_path = os.path.join(folder_path, "hello world")
+            os.mkdir(new_folder_path)
+            new_json_path = os.path.join(new_folder_path, "config.json")
+
+            # Определение пути к config.json в исполняемом файле
+            if getattr(sys, 'frozen', False):
+                # Исполняемый файл (.exe)
+                base_path = sys._MEIPASS
+            else:
+                # Исходный код Python
+                base_path = os.path.dirname(os.path.abspath(__file__))
+            existing_json_path = os.path.join(base_path, "config.json")
+
+            shutil.copyfile(existing_json_path, new_json_path)
+
+            # Дальнейшая обработка выбранной папки
             print("Сохранили конфиг в папку:", folder_path)
+        else:
+            # Пользователь нажал "Отмена"
+            QMessageBox.information(None, "Message", "Операция отменена. Возврат в главное меню.")
+            self.setupUi(MainWindow)
 
     def open_file_dialog(self):
         dialog = QFileDialog()
@@ -72,6 +87,10 @@ class Ui_MainWindow(object):
             with open(file_path, 'r') as file:
                 content = file.read()
                 self.textBrowser.setText(content)
+        else:
+            # Пользователь нажал "Отмена"
+            QMessageBox.information(None, "Message", "Операция отменена. Возврат в главное меню.")
+            self.setupUi(MainWindow)
 
     def save_button_clicked(self):
         # Пустой обработчик нажатия кнопки "Сохранить"
