@@ -70,8 +70,6 @@ class Ui_MainWindow(object):
 
             shutil.copyfile(existing_json_path, new_json_path)
 
-            # Дальнейшая обработка выбранной папки
-            print("Сохранили конфиг в папку:", folder_path)
         else:
             # Пользователь нажал "Отмена"
             QMessageBox.information(None, "Message", "Операция отменена. Возврат в главное меню.")
