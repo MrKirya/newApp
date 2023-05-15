@@ -1,11 +1,13 @@
-from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen
-from PyQt6.QtGui import QPixmap
 import os
 import shutil
 import sys
 import time
 import sqlite3
+
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen, QTabWidget, QTableView, QTextBrowser
+from PySide6.QtGui import QPixmap
+from PySide6.QtCore import QMetaObject
 
 
 class Ui_MainWindow(object):
@@ -14,6 +16,8 @@ class Ui_MainWindow(object):
         MainWindow.resize(1076, 772)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+
+
 
 
         self.tabWidget = QtWidgets.QTabWidget(parent=self.centralwidget)
