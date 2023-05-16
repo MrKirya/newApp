@@ -7,15 +7,16 @@ import sqlite3
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen, QTabWidget, QTableView, QTextBrowser
 from PySide6.QtGui import QPixmap
-from PySide6.QtCore import QMetaObject
-
-
+from PySide6.QtCore import QMetaObject, QUrl
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage, QWebEngineUrlRequestInterceptor
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1076, 772)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
+
 
 
 
@@ -44,19 +45,21 @@ class Ui_MainWindow(object):
         self.tableView_2.setObjectName("tableView_2")
         self.tabWidget.addTab(self.tab_2, "")
 
-
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setTabletTracking(False)
         self.tab_3.setObjectName("tab_3")
-        self.textBrowser = QtWidgets.QTextBrowser(parent=self.tab_3)
-        self.textBrowser.setGeometry(QtCore.QRect(0, 0, 1091, 721))
+        self.webView = QWebEngineView(parent=self.tab_3)
+        self.webView.setGeometry(QtCore.QRect(0, 0, 1091, 721))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textBrowser.sizePolicy().hasHeightForWidth())
-        self.textBrowser.setSizePolicy(sizePolicy)
-        self.textBrowser.setObjectName("textBrowser")
+        sizePolicy.setHeightForWidth(self.webView.sizePolicy().hasHeightForWidth())
+        self.webView.setSizePolicy(sizePolicy)
+        self.webView.setObjectName("webView")
         self.tabWidget.addTab(self.tab_3, "")
+        self.tabWidget.setCurrentWidget(self.tab_3)  # Установить tab_3 как текущую вкладку
+
+
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -106,16 +109,16 @@ class Ui_MainWindow(object):
         self.menu.addAction(self.action_8)
         self.menubar.addAction(self.menu.menuAction())
 
-        self.textBrowser = QtWidgets.QTextBrowser(parent=self.tab_3)
-        self.textBrowser.setGeometry(QtCore.QRect(90, 70, 461, 291))
-        self.textBrowser.setObjectName("textBrowser")
+        # self.textBrowser = QtWidgets.QTextBrowser(parent=self.tab_3)
+        # self.textBrowser.setGeometry(QtCore.QRect(90, 70, 461, 291))
+        # self.textBrowser.setObjectName("textBrowser")
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def clear_text(self):
-        self.textBrowser.clear()
+        self.webView.setHtml("")  # Очистить содержимое QWebEngineView
 
     def open_folder_dialog(self):
         dialog = QFileDialog()
@@ -147,24 +150,20 @@ class Ui_MainWindow(object):
         dialog = QFileDialog()
         file_path, _ = dialog.getOpenFileName(None, "Выберите файл")
 
-        # Дальнейшая обработка выбранного файла
         if file_path:
             print("Выбранный файл:", file_path)
             file_extension = os.path.splitext(file_path)[1].lower()
             if file_extension == ".html":
-                with open(file_path, 'r') as file:
-                    content = file.read()
-                    self.textBrowser.setHtml(content)
-            elif file_extension == ".json":
-                with open(file_path, 'r') as file:
-                    content = file.read()
-                    self.textBrowser.setText(content)
+                self.open_html_file(file_path)
             else:
-                self.textBrowser.setText("Выбранный файл не является HTML- или JSON-файлом.")
+                QMessageBox.warning(None, "Предупреждение", "Выбранный файл не является HTML-файлом.")
         else:
-            # Пользователь нажал "Отмена"
-            QMessageBox.information(None, "Message", "Операция отменена. Возврат в главное меню.")
+            QMessageBox.information(None, "Сообщение", "Операция отменена. Возврат в главное меню.")
             self.setupUi(MainWindow)
+
+    def open_html_file(self, file_path):
+        self.webView.setUrl(QtCore.QUrl.fromLocalFile(file_path))
+        self.webView.show()
     def create_database(self,database_path, folder_path):
         if getattr(sys, 'frozen', False):
             # Путь к исполняемому файлу (.exe)
