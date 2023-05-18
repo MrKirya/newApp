@@ -5,62 +5,107 @@ import time
 import sqlite3
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen, QTabWidget, QTableView, QTextBrowser
-from PySide6.QtGui import QPixmap
-from PySide6.QtCore import QMetaObject, QUrl
+from PySide6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen, QTabWidget, QTableView, \
+    QTextBrowser, QMenu
+from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtCore import QMetaObject, QUrl, Qt
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage, QWebEngineUrlRequestInterceptor
+import requests
+from bs4 import BeautifulSoup
+
+
+class Browser(QWebEngineView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def contextMenuEvent(self, event):
+        # Создаем стандартное контекстное меню
+        menu = self.createStandardContextMenu()
+
+        # Добавляем свои дополнительные действия в меню
+        action = QAction('My Custom Action', self)
+        action.triggered.connect(self.customActionClicked)
+        menu.addAction(action)
+
+        # Показываем меню
+        menu.popup(event.globalPos())
+
+    def customActionClicked(self):
+        print('Custom action clicked')
+
+
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1076, 772)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-
-
-
-
+        self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
 
         self.tabWidget = QtWidgets.QTabWidget(parent=self.centralwidget)
-        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 1081, 721))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
+
         self.tabWidget.setSizePolicy(sizePolicy)
+        self.tabWidget.setMovable(True)
         self.tabWidget.setObjectName("tabWidget")
 
         self.tab_1 = QtWidgets.QWidget()
         self.tab_1.setObjectName("tab_1")
+        self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.tab_1)
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.tableView = QtWidgets.QTableView(parent=self.tab_1)
-        self.tableView.setGeometry(QtCore.QRect(30, 30, 256, 192))
+        self.horizontalLayout_5.addWidget(self.tableView)
         self.tableView.setObjectName("tableView")
         self.tabWidget.addTab(self.tab_1, "")
 
-
         self.tab_2 = QtWidgets.QWidget()
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tab_2.sizePolicy().hasHeightForWidth())
+        self.tab_2.setSizePolicy(sizePolicy)
         self.tab_2.setObjectName("tab_2")
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.tab_2)
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+
         self.tableView_2 = QtWidgets.QTableView(parent=self.tab_2)
-        self.tableView_2.setGeometry(QtCore.QRect(30, 20, 256, 192))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.tableView_2.sizePolicy().hasHeightForWidth())
+        self.tableView_2.setSizePolicy(sizePolicy)
         self.tableView_2.setObjectName("tableView_2")
+        self.horizontalLayout_6.addWidget(self.tableView_2)
         self.tabWidget.addTab(self.tab_2, "")
 
         self.tab_3 = QtWidgets.QWidget()
         self.tab_3.setTabletTracking(False)
         self.tab_3.setObjectName("tab_3")
-        self.webView = QWebEngineView(parent=self.tab_3)
-        self.webView.setGeometry(QtCore.QRect(0, 0, 1091, 721))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Maximum, QtWidgets.QSizePolicy.Policy.Maximum)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.tab_3)
+        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.webView = Browser(parent=self.tab_3)
+
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.webView.sizePolicy().hasHeightForWidth())
         self.webView.setSizePolicy(sizePolicy)
         self.webView.setObjectName("webView")
+        self.horizontalLayout_3.addWidget(self.webView)
         self.tabWidget.addTab(self.tab_3, "")
+        self.horizontalLayout_4.addWidget(self.tabWidget)
         self.tabWidget.setCurrentWidget(self.tab_3)  # Установить tab_3 как текущую вкладку
-
-
-
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
@@ -70,11 +115,9 @@ class Ui_MainWindow(object):
         self.menu.setObjectName("menu")
         MainWindow.setMenuBar(self.menubar)
 
-
         self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
 
         self.action = QtGui.QAction(parent=MainWindow)
         self.action.setObjectName("action")
@@ -108,6 +151,7 @@ class Ui_MainWindow(object):
 
         self.menu.addAction(self.action_8)
         self.menubar.addAction(self.menu.menuAction())
+        self.load_data_from_database()
 
         # self.textBrowser = QtWidgets.QTextBrowser(parent=self.tab_3)
         # self.textBrowser.setGeometry(QtCore.QRect(90, 70, 461, 291))
@@ -162,9 +206,36 @@ class Ui_MainWindow(object):
             self.setupUi(MainWindow)
 
     def open_html_file(self, file_path):
-        self.webView.setUrl(QtCore.QUrl.fromLocalFile(file_path))
-        self.webView.show()
-    def create_database(self,database_path, folder_path):
+        with open(file_path, 'r') as file:
+            html_content = file.read()
+        self.webView.setHtml(html_content)
+
+    def contextMenuEvent(self, event):
+        menu = self.page().createStandardContextMenu()
+        save_page_action = self.menu.addAction("Жопа")
+        save_image_action = self.menu.addAction("Save image")
+        action = self.menu.popup(event.globalPos())
+
+        if action == save_page_action:
+            self.handle_save_page()
+        elif action == save_image_action:
+            self.handle_save_image()
+
+    def handle_save_page(self):
+        dialog = QFileDialog()
+        file_path, _ = dialog.getSaveFileName(None, "Сохранить страницу", "", "HTML Files (*.html)")
+        if file_path:
+            self.webView.page().save(file_path)
+            QMessageBox.information(None, "Сохранение", "Страница сохранена успешно.")
+
+    def handle_save_image(self):
+        dialog = QFileDialog()
+        file_path, _ = dialog.getSaveFileName(None, "Сохранить изображение", "", "Images (*.png *.jpg *.jpeg)")
+        if file_path:
+            self.webView.page().saveImage(self.webView.page().contextMenuData().mediaUrl(), file_path)
+            QMessageBox.information(None, "Сохранение", "Изображение сохранено успешно.")
+
+    def create_database(self, database_path, folder_path):
         if getattr(sys, 'frozen', False):
             # Путь к исполняемому файлу (.exe)
             base_path = sys._MEIPASS
@@ -196,6 +267,45 @@ class Ui_MainWindow(object):
         conn.commit()
 
         conn.close()
+
+    def load_data_from_database(self):
+        # Установка соединения с базой данных
+        connection = sqlite3.connect("CN.db")  # Замените "CN.db" на путь к вашей базе данных
+        cursor = connection.cursor()
+
+        # Выполнение запроса на получение данных из таблицы "professions"
+        cursor.execute("SELECT * FROM professions")
+        professions_data = cursor.fetchall()
+        profession_column_names = [description[0] for description in cursor.description]
+
+        # Загрузка данных из таблицы "growths"
+        cursor.execute("SELECT * FROM growths")
+        growths_data = cursor.fetchall()
+        growths_column_names = [description[0] for description in cursor.description]
+
+        # Отображение данных в таблице на вкладке "Вершины"
+        vertex_table_widget = self.tableView
+        vertex_model = QtGui.QStandardItemModel(len(professions_data), len(professions_data[0]))
+        vertex_model.setHorizontalHeaderLabels(profession_column_names)
+        for row in range(len(professions_data)):
+            for column in range(len(professions_data[row])):
+                item = QtGui.QStandardItem(str(professions_data[row][column]))
+                vertex_model.setItem(row, column, item)
+        vertex_table_widget.setModel(vertex_model)
+
+        # Отображение данных в таблице на вкладке "Рёбра"
+        edges_table_widget = self.tableView_2
+        edges_model = QtGui.QStandardItemModel(len(growths_data), len(growths_data[0]))
+        edges_model.setHorizontalHeaderLabels(growths_column_names)
+        for row in range(len(growths_data)):
+            for column in range(len(growths_data[row])):
+                item = QtGui.QStandardItem(str(growths_data[row][column]))
+                edges_model.setItem(row, column, item)
+        edges_table_widget.setModel(edges_model)
+
+        # Закрытие соединения с базой данных
+        cursor.close()
+        connection.close()
     def save_button_clicked(self):
         # При нажатии кнопки "Сохранить проект"
         dialog = QFileDialog()
@@ -227,11 +337,9 @@ class Ui_MainWindow(object):
         else:
             QMessageBox.warning(None, "Message", "Не выбрана папка для сохранения проекта.")
 
-
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Graph Editor (v.0.2)"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Graph Editor (v.0.3)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("MainWindow", "Вершины"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Рёбра"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("MainWindow", "Визуализация"))

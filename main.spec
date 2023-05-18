@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('images', 'images'), ('config.json', '.')],
+    datas=[('images', 'images'), ('config.json', '.'), ('vis-network.css', '.'), ('vis-network.min.js', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
