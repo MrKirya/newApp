@@ -3,6 +3,7 @@ import shutil
 import sys
 import time
 import sqlite3
+import ctypes
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QFileDialog, QMessageBox, QApplication, QSplashScreen, QTabWidget, QTableView, \
@@ -18,29 +19,78 @@ from bs4 import BeautifulSoup
 class Browser(QWebEngineView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.page = QWebEnginePage()
+        self.setPage(self.page)
+
+
+    # def contextMenuEvent(self, event):
+    #     self.menu = QMenu()
+    #     self.menu.addAction('Save something')
+    #     self.menu.addAction('Reload', self.reloadPage)
+    #     self.menu.popup(event.globalPos())
 
     def contextMenuEvent(self, event):
-        # Создаем стандартное контекстное меню
-        menu = self.createStandardContextMenu()
+        self.menu = QMenu()
+        save_page_action = self.menu.addAction("Сохранить страницу")
+        # save_page_action.triggered.connect(self.handle_save_page)
+        save_image_action = self.menu.addAction("Сохранить изображение")
+        # save_image_action.triggered.connect(self.handle_save_image)
+        reload_page = self.menu.addAction("Перезагрузка")
+        reload_page.triggered.connect(self.reloadPage)
+        action = self.menu.popup(event.globalPos())
 
-        # Добавляем свои дополнительные действия в меню
-        action = QAction('My Custom Action', self)
-        action.triggered.connect(self.customActionClicked)
-        menu.addAction(action)
+        if action == save_page_action:
+            self.handle_save_page()
+        elif action == save_image_action:
+            self.handle_save_image()
 
-        # Показываем меню
-        menu.popup(event.globalPos())
+    def handle_save_page(self):
+        dialog = QFileDialog()
+        file_path, _ = dialog.getSaveFileName(None, "Сохранить страницу", "", "HTML Files (*.html)")
+        if file_path:
+            self.page.save(file_path)
+            QMessageBox.information(None, "Сохранение", "Страница сохранена успешно.")
 
-    def customActionClicked(self):
-        print('Custom action clicked')
+    def handle_save_image(self):
+        dialog = QFileDialog()
+        file_path, _ = dialog.getSaveFileName(None, "Сохранить изображение", "", "Images (*.png *.jpg *.jpeg)")
+        if file_path:
+            self.page.saveImage(self.page.contextMenuData().mediaUrl(), file_path)
+            QMessageBox.information(None, "Сохранение", "Изображение сохранено успешно.")
+
+    def reloadPage(self):
+        self.reload()
 
 
 class Ui_MainWindow(object):
+    @staticmethod
+    def resource_path(relative_path):
+        """ Получает абсолютный путь к ресурсу, независимо от того, является ли он исполняемым файлом или исходным кодом """
+        if getattr(sys, 'frozen', False):
+            # Исполняемый файл PyInstaller
+            base_path = sys._MEIPASS
+        else:
+            # Исходный код Python
+            base_path = os.path.abspath(".")
+
+        return os.path.join(base_path, relative_path)
+
+    @staticmethod
+    def set_window_icon():
+        """ Устанавливает иконку приложения """
+        icon_path = Ui_MainWindow.resource_path("logo.png")
+
+        if os.path.exists(icon_path):
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                "Graph.app")  # Замените "Graph.app" на свой идентификатор приложения
+            app_icon = QtGui.QIcon(icon_path)
+            MainWindow.setWindowIcon(app_icon)
 
     def setupUi(self, MainWindow):
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1076, 772)
+        MainWindow.setWindowIcon(QtGui.QIcon(self.resource_path("logo.png")))
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -156,7 +206,6 @@ class Ui_MainWindow(object):
         # self.textBrowser = QtWidgets.QTextBrowser(parent=self.tab_3)
         # self.textBrowser.setGeometry(QtCore.QRect(90, 70, 461, 291))
         # self.textBrowser.setObjectName("textBrowser")
-
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -187,7 +236,7 @@ class Ui_MainWindow(object):
             self.setupUi(MainWindow)
         else:
             # Пользователь нажал "Отмена"
-            QMessageBox.information(None, "Message", "Операция отменена. Возврат в главное меню.")
+            QMessageBox.information(None, "Сообщение", "Операция отменена. Возврат в главное меню.")
             self.setupUi(MainWindow)
 
     def open_file_dialog(self):
@@ -209,31 +258,6 @@ class Ui_MainWindow(object):
         with open(file_path, 'r') as file:
             html_content = file.read()
         self.webView.setHtml(html_content)
-
-    def contextMenuEvent(self, event):
-        menu = self.page().createStandardContextMenu()
-        save_page_action = self.menu.addAction("Жопа")
-        save_image_action = self.menu.addAction("Save image")
-        action = self.menu.popup(event.globalPos())
-
-        if action == save_page_action:
-            self.handle_save_page()
-        elif action == save_image_action:
-            self.handle_save_image()
-
-    def handle_save_page(self):
-        dialog = QFileDialog()
-        file_path, _ = dialog.getSaveFileName(None, "Сохранить страницу", "", "HTML Files (*.html)")
-        if file_path:
-            self.webView.page().save(file_path)
-            QMessageBox.information(None, "Сохранение", "Страница сохранена успешно.")
-
-    def handle_save_image(self):
-        dialog = QFileDialog()
-        file_path, _ = dialog.getSaveFileName(None, "Сохранить изображение", "", "Images (*.png *.jpg *.jpeg)")
-        if file_path:
-            self.webView.page().saveImage(self.webView.page().contextMenuData().mediaUrl(), file_path)
-            QMessageBox.information(None, "Сохранение", "Изображение сохранено успешно.")
 
     def create_database(self, database_path, folder_path):
         if getattr(sys, 'frozen', False):
@@ -306,6 +330,7 @@ class Ui_MainWindow(object):
         # Закрытие соединения с базой данных
         cursor.close()
         connection.close()
+
     def save_button_clicked(self):
         # При нажатии кнопки "Сохранить проект"
         dialog = QFileDialog()
@@ -370,5 +395,6 @@ if __name__ == "__main__":
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
+    ui.set_window_icon()
     MainWindow.show()
     sys.exit(app.exec())
